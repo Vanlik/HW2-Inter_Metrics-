@@ -1,0 +1,138 @@
+# Intermediate Econometrics HW2
+
+## Question 1
+
+We specify the model as:
+  
+  $$
+  lwage = \beta_0 + \beta_1 Male + \beta_2 Age + \beta_3 Education + \beta_4 Age^2 + \varepsilon
+  $$
+    
+    
+To conduct a stability test, we construct 3 models: we split the group of $n$ observations into one group in Model 1 where $Informal = 1$ and another in Model 2 where $Informal = 0$. Model 3 is the combined model, where we let $Informal$ take any value 0 or 1.
+    
+Our hypotheses:
+      
+      
+$$
+      H_0: \mathbf{\beta^{I}} = \mathbf{\beta^{F}} \\
+    H_a: \mathbf{\beta^{I}} \neq \mathbf{\beta^{F}}
+$$
+      
+Where the superscript $I$ indicates informal and $F$ indicates formal, respectively.
+    
+The stability test will then be approximated by:
+      
+$$
+  F = \frac{RSE_3 - RSE_2 - RSE_1}{RSE_2 + RSE_1} (\frac{n - 2k}{k})
+$$
+      
+As seen in the R script `econometrics_hw2.R` in the variable `F_stability`, this F statistic is:
+      
+$$
+F_{stability} = 4820 > F_{5, 73405, 1- \alpha} = 2.21
+$$
+      
+## Question 2
+      
+We now consider the model:
+      
+$$
+      lwage = \beta_0 + \beta_1 Age + \beta_2 Age^2 + \beta_3 Education + \beta_4 Informal + \beta_5 married + \beta_6 urban + \beta_7 ftw + \beta_8 union + u
+$$
+      
+      
+Running the regression in R we obtain the following estimates for the coefficients of $Age$, $Age^2$ and $Education$, which are $\beta_1$, $\beta_2$, and $\beta_3$ respectively:
+      
+      
+| Variable:    | Age     | Age Squared | Education |
+|--------------|---------|-------------|-----------|
+| Coefficient: | 0.02693 | -0.000256   | 0.04260   |
+      
+      
+The marginal effect of a one-year increase in general education, all else equal, is a 4.26% increase in wage. The marginal effect of a one-year increase in age, all else equal, is $\beta_2 + 2 \beta_3 Age$.
+    
+## Question 3
+    
+We now consider the model
+    
+$$
+      lwage = \beta_0 + \beta_1 Age + \beta_2 Age^2 + \beta_3 Education + \beta_4 Informal + \beta_5 married + \beta_6 urban + \beta_7 ftw + \beta_8 union + \beta_9 lowcaste + u
+$$
+
+We estimate this model as 
+
+
+```
+q3_model = df %>%
+  lm(formula = lwage ~ Age + age_sq + Education + Informal + currently_married + urban + ftw + union + lower_caste)
+```
+
+### Are the coefficients of Age and Education different?
+
+We can easily pull the standard errors from each model with the following:
+
+```
+q3_se = coef(summary(q3_model))[c(2,4),2]
+q3_var = q3_se^2
+```
+
+And we then repeat this for Model 2.
+
+The t-statistic to test if coefficient for Age in model 2 is the same as for Age in model 3 is:
+
+```
+t_stat_age = (coef(q2_model)[2] - coef(q3_model)[2])/(sqrt(q3_var[1] + q2_var[1]))
+```
+
+Which is:
+
+$$
+\hat t_{Age} = 0.164 < 1.96
+$$
+
+So we fail to reject the null hypothesis that the coefficient of Age is the same in Model 2 and 3. We repeat the t-test for Education:
+
+```
+t_stat_educ = (coef(q2_model)[4] - coef(q3_model)[4])/(sqrt(q3_var[2] + q2_var[2]))
+```
+
+
+$$
+\hat t_{Education} = 2.05 > 1,96
+$$
+
+So we reject the null hypothesis that the coefficient of Education is the same in Model 2 and Model 3.
+
+### Interpret the coefficient of Informal
+
+We interpret the coefficient of Informal in q3_model as: those who work in the informal sector, all else equal, earn wages 89 percent lower than those who work in the formal sector
+
+
+## Question 4
+
+We now consider the model:
+
+$$
+lwage = \beta_0 + \beta_1 Age + \beta_2 Age^2 + \beta_3 Education + \beta_4 Informal + \beta_5 married + \beta_6 urban + \beta_7 ftw + \beta_8 union + \beta_9 lowcaste + \beta_{10} male * Informal + u
+$$
+Females working in the informal sector receive 127 percent lower wages than females in the formal sector. Males working in the informal sector earn 45 percent more than females working in the informal sector, but 82 percent less than males working in the formal sector.
+
+
+## Question 5
+
+With the following code we store the log of the squared residuals from the Question 4 regression, then we regress the log squared residuals on age, education, their squared terms and their interaction term. 
+
+
+```
+log_q4_sq_residuals = log(q4_model$residuals^2)
+
+df2 = cbind(df, log_q4_sq_residuals) %>%
+  mutate(educ_sq = Education^2)
+
+q4_model = df2 %>%
+  lm(formula = log_q4_sq_residuals ~ Age + Education + age_sq + educ_sq + I(Age * Education))
+```
+
+And this model `q4_model` has an F-statistic of 42.99 with $df = (5, 73409)$. Since $42.99 > 2.21$, we reject the null hypothesis of homoskedasticity.
+

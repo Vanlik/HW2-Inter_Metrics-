@@ -34,6 +34,9 @@ model2 = df %>%
 model3 = df %>%
   lm(formula = lwage ~ male + Age + Education + age_sq + Informal)
 
+model_1_and_2_combined = df %>%
+  lm(formula = lwage ~ male + Age + Education + age_sq)
+
 ### Look at the coefficients
 coefficients(model1)
 coefficients(model2)
@@ -44,6 +47,32 @@ coefficients(model3)
 confint(model1, level = 0.95)
 confint(model2, level = 0.95)
 confint(model3, level = 0.95)
+
+
+### Stability Test: Does the same model apply for formal and informal workers? ###
+
+output_m1 = summary(model1)
+output_m2 = summary(model2)
+output_m1_and_m2_combined = summary(model_1_and_2_combined)
+
+### Pull and store the RSE of each model
+sse_m1 = sum(model1$residuals^2)
+sse_m2 = sum(model2$residuals^2)
+sse_m1_and_m2_combined = sum(model_1_and_2_combined$residuals^2)
+
+### Pull and store the number of observations in each model
+n_m1 = dim(df %>% filter(Informal ==1))[1]
+n_m2 = dim(df %>% filter(Informal ==0))[1]
+n = dim(df)[1]
+
+### 4 regressors and one intercept
+k = 5
+
+F_stability = ((sse_m1_and_m2_combined - sse_m2 - sse_m1)/k)/((sse_m2 + sse_m1) / (n - 2 * k))
+
+F_stability 
+
+#### Reject the null hypothesis that the model is the same for informal and formal workers
 
 ## Q2: New Model/Interpretation -----------
 
@@ -73,12 +102,12 @@ coef(q2_model)[c(2,4)] == coef(q3_model)[c(2,4)]
 ### Now we need to test if they are different at the 5% level
 
 ### Pull the standard errors for Age and Education from model 3
-q3_se = coef(summary(q3_model))[c(2,4),2]
+q3_se = coef(summary(q3_model))[c(2:4),2]
 q3_var = q3_se^2
 
 ### Do the same for model 2
 
-q2_se = coef(summary(q2_model))[c(2,4),2]
+q2_se = coef(summary(q2_model))[c(2:4),2]
 q2_var = q2_se^2
 
 
@@ -87,13 +116,16 @@ t_stat_age = (coef(q2_model)[2] - coef(q3_model)[2])/(sqrt(q3_var[1] + q2_var[1]
 ### Is the t-stat for age greater than 1.96?
 t_stat_age > 1.96
 
+t_stat_age_sq = (coef(q2_model)[3] - coef(q3_model)[3])/(sqrt(q3_var[2] + q2_var[2]))
+
+t_stat_age_sq
 ### No, it is less than 1.96: Fail to reject the null that the
 ### coefficient for Age in Model 2 is equal to the coefficient for Age in Model 3
 
 
 ### Let's run the same test for Education
 
-t_stat_educ = (coef(q2_model)[4] - coef(q3_model)[4])/(sqrt(q3_var[2] + q2_var[2]))
+t_stat_educ = (coef(q2_model)[4] - coef(q3_model)[4])/(sqrt(q3_var[3] + q2_var[3]))
 
 t_stat_educ > 1.96 
 
