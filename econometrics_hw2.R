@@ -82,7 +82,7 @@ q2_model = df %>%
 summary(q2_model)
 
 ### The following returns the coefficients for Age, age_sq, and Education
-### So, all else equal, the marginal effects of a one-year increase in age on wage is 2.69% - 0.0256% = approximately 2.67%
+### So, all else equal, the marginal effects of a one-year increase in age on wage is 2.69% - (0.0256% * 2 * Age)
 
 coef(q2_model)[2:4]
 

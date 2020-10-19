@@ -50,7 +50,7 @@ Running the regression in R we obtain the following estimates for the coefficien
 | Coefficient: | 0.02693 | -0.000256   | 0.04260   |
       
       
-The marginal effect of a one-year increase in general education, all else equal, is a 4.26% increase in wage. The marginal effect of a one-year increase in age, all else equal, is $\beta_2 + 2 \beta_3 Age$.
+The marginal effect of a one-year increase in general education, all else equal, is a 4.26% increase in wage. The marginal effect of a one-year increase in age, all else equal, is $\beta_2 + 2 \beta_3 Age = 2.69\% - 0.0511\% * Age$.
     
 ## Question 3
     
@@ -135,4 +135,3 @@ q4_model = df2 %>%
 ```
 
 And this model `q4_model` has an F-statistic of 42.99 with $df = (5, 73409)$. Since $42.99 > 2.21$, we reject the null hypothesis of homoskedasticity.
-
