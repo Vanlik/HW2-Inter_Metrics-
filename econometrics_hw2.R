@@ -190,7 +190,7 @@ hhat <- exp(sigmahat^2)
 
 q6_model <- df %>% 
   lm(formula = lwage ~ Age + I(Age^2) + Education + Informal + currently_married + urban + ftw + union + lower_caste + I(male * Informal), 
-     weights = I(1/hhat))
+     weights = I(1/sqrt(hhat)))
 
 summary(q6_model)
 
