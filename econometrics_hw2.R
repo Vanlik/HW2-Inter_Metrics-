@@ -175,5 +175,24 @@ summary(q4_model)
 
 
 ## Q6: FGLS -----------
+res_q4_model <- residuals(q4_model) 
+res_q4_model_sq <- res_q4_model^2
 
+#Run auxiliary regression on the known skedastic function of the error variance
+model_test <- df %>% 
+  lm(formula = log(res_q4_model_sq) ~ Age + I(Age^2) + Education + I(Education^2) + I(Age*Education) + 1)
+
+summary(model_test)
+sigmahat <- fitted(model_test)
+hhat <- exp(sigmahat^2)
+
+#Reestimate model in Q4 using FGLS by weighting 1/hhat
+
+q6_model <- df %>% 
+  lm(formula = lwage ~ Age + I(Age^2) + Education + Informal + currently_married + urban + ftw + union + lower_caste + I(male * Informal), 
+     weights = I(1/hhat))
+
+summary(q6_model)
+
+## Q7: Discussion
 
