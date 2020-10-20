@@ -1,6 +1,8 @@
 # Intermediate Econometrics HW2
 
 ## Load Tidyverse library
+## Uncomment the following line if tidyverse is not installed
+## install.packages("tidyverse")
 library(tidyverse)
 
 ## Put data into a data frame
@@ -19,8 +21,8 @@ df = df %>%
   mutate(union = ifelse(df$Union_member ==1, 1, 0)) %>%
   mutate(lower_caste = ifelse(df$Social_Group == 9, 0 ,1))
 
-## Check that all variables were added correctly
-view(df)
+## Uncomment the following line to check that all variables were added correctly
+## view(df)
 
 ## Q1: Stability Test -----------
 model1 = df %>% 
@@ -36,18 +38,6 @@ model3 = df %>%
 
 model_1_and_2_combined = df %>%
   lm(formula = lwage ~ male + Age + Education + age_sq)
-
-### Look at the coefficients
-coefficients(model1)
-coefficients(model2)
-coefficients(model3)
-
-### Look at the confidence intervals 
-
-confint(model1, level = 0.95)
-confint(model2, level = 0.95)
-confint(model3, level = 0.95)
-
 
 ### Stability Test: Does the same model apply for formal and informal workers? ###
 
@@ -115,6 +105,7 @@ t_stat_age = (coef(q2_model)[2] - coef(q3_model)[2])/(sqrt(q3_var[1] + q2_var[1]
 
 ### Is the t-stat for age greater than 1.96?
 t_stat_age > 1.96
+t_state_age
 
 t_stat_age_sq = (coef(q2_model)[3] - coef(q3_model)[3])/(sqrt(q3_var[2] + q2_var[2]))
 
@@ -127,7 +118,8 @@ t_stat_age_sq
 
 t_stat_educ = (coef(q2_model)[4] - coef(q3_model)[4])/(sqrt(q3_var[3] + q2_var[3]))
 
-t_stat_educ > 1.96 
+t_stat_educ > 1.96
+t_stat_educ
 
 ### The t stat for education is greater than 1.96, we reject the null hypothesis that the coefficients are for education in q2_model and q3_model are different
 
@@ -159,12 +151,13 @@ sum(coef(q4_model)[c("Informal", "male_informal")])
 log_q4_sq_residuals = log(q4_model$residuals^2)
 
 df2 = cbind(df, log_q4_sq_residuals) %>%
-  mutate(educ_sq = Education^2)
+  mutate(educ_sq = Education^2) %>%
+  mutate(educ_times_age = Education * Age)
 
-q4_model = df2 %>%
-  lm(formula = log_q4_sq_residuals ~ Age + Education + age_sq + educ_sq + I(Age * Education))
+q5_model = df2 %>%
+  lm(formula = log_q4_sq_residuals ~ Age + Education + age_sq + educ_sq + educ_times_age)
 
-summary(q4_model)
+summary(q5_model)
 
 
 ### The null hypothesis is that all of the coefficients are equal to zero; the alternative is that they are not equal to 0.
@@ -179,20 +172,22 @@ res_q4_model <- residuals(q4_model)
 res_q4_model_sq <- res_q4_model^2
 
 #Run auxiliary regression on the known skedastic function of the error variance
-model_test <- df %>% 
-  lm(formula = log(res_q4_model_sq) ~ Age + I(Age^2) + Education + I(Education^2) + I(Age*Education) + 1)
+auxiliary_model <- df2 %>% 
+  lm(formula = log(res_q4_model_sq) ~ Age + age_sq + Education + educ_sq + educ_times_age + 1)
 
-summary(model_test)
-sigmahat <- fitted(model_test)
-hhat <- exp(sigmahat^2)
+summary(auxiliary_model)
+
+log_sigmahat_sq <- fitted(auxiliary_model)
+hhat <- exp(log_sigmahat_sq)
+weights <- 1/hhat
 
 #Reestimate model in Q4 using FGLS by weighting 1/hhat
 
-q6_model <- df %>% 
-  lm(formula = lwage ~ Age + I(Age^2) + Education + Informal + currently_married + urban + ftw + union + lower_caste + I(male * Informal), 
-     weights = I(1/sqrt(hhat)))
+q6_model <- df2 %>% 
+  mutate(male_informal = male * Informal) %>%
+  lm(formula = lwage ~ Age + age_sq + Education + Informal + currently_married + urban + ftw + union + lower_caste + male_informal, 
+     weights = weights)
 
 summary(q6_model)
 
 ## Q7: Discussion
-
