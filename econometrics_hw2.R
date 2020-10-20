@@ -159,6 +159,8 @@ q5_model = df2 %>%
 
 summary(q5_model)
 
+library(car)
+linearHypothesis(q5_model, c("Age=0","Education=0", "age_sq=0", "educ_sq=0", "educ_times_age=0"))
 
 ### The null hypothesis is that all of the coefficients are equal to zero; the alternative is that they are not equal to 0.
 ### With an F-statistic of 128.7 (and corresponding p value of 2.2e-16)
