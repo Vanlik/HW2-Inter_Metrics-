@@ -135,3 +135,7 @@ q4_model = df2 %>%
 ```
 
 And this model `q4_model` has an F-statistic of 42.99 with $df = (5, 73409)$. Since $42.99 > 2.21$, we reject the null hypothesis of homoskedasticity.
+
+
+## Question 6
+
